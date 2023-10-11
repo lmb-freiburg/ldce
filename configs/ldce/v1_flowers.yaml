@@ -1,0 +1,41 @@
+resume: False
+fixed_seed: False
+record_intermediate: False
+output_dir: 'results/flowers'
+
+diffusion_model:
+  cfg_path: "configs/stable-diffusion/v1-inference.yaml"
+  ckpt_path: "/path/to/miniSD.ckpt" # miniSD https://huggingface.co/justinpinkney/miniSD/tree/main
+
+classifier_model:
+  classifier_wrapper: True
+  n_last_blocks: 1
+  classifier_path: "/path/to/dino_flowers_linear.pth" # needs to be trained prior of running
+
+n_samples_per_class: #2
+strength: 0.5 #0.322 #0.382 #0.34 #0.3 #28 #0.25
+scale: 3 #2.45 #2.85
+ddim_steps: 500 #500 #375 
+ddim_eta: 0.
+log_rate: 1
+shuffle: False
+
+data:
+  _target_: data.datasets.Flowers102
+  root: "/path/to/flowers"
+  shard: 0
+  num_shards: 1
+  batch_size: 1
+
+sampler:
+  self_recurrence: 0
+  self_recurrence_every_n_steps: 0
+  enforce_same_norms: True
+  guidance: "projected"
+  cone_projection_type: "zero_binning"
+  classifier_lambda: 3.4 #3.3
+  dist_lambda: 1.2
+  masked_guidance: False
+  backprop_diffusion: True   
+  lp_custom: 1
+  deg_cone_projection: 45.

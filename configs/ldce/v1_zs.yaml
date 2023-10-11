@@ -1,0 +1,47 @@
+resume: False
+record_intermediate: False
+output_dir: results/zebra_sorrel
+
+diffusion_model:
+  cfg_path: "configs/latent-diffusion/cin256-v2.yaml"
+  ckpt_path: "/path/to/ImageNet/LDM.ckpt"
+
+seg_model:
+classifier_model:
+  name: "resnet50"
+
+
+n_samples_per_class: #2
+strength: 0.342 #0.322 #0.382 #0.34 #0.3 #28 #0.25
+scale: 3 #2.45 #2.85
+ddim_steps: 500 #500 #375 
+ddim_eta: 0.
+log_rate: 1
+
+data:
+  _target_: data.datasets.ImageNetSelect
+  root: '/path/to/ImageNet/val'
+  lbl_to_tgt_cls_map: 
+    339: 340
+    340: 339
+  split: 'val'
+  class_idcs:
+    - 340
+    - 339
+  return_tgt_cls: True
+  batch_size: 32
+  start_sample: 0
+  end_sample: 50000
+
+sampler:
+  self_recurrence: 0
+  self_recurrence_every_n_steps: 0
+  enforce_same_norms: True
+  guidance: "projected"
+  cone_projection_type: "zero_binning"
+  classifier_lambda: 2.0 #3.3
+  dist_lambda: 0.25
+  masked_guidance: False
+  backprop_diffusion: True   
+  lp_custom: 1
+  deg_cone_projection: 40.

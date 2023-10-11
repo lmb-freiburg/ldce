@@ -1,0 +1,67 @@
+
+# #create a config yaml file for training with pytorch lightning with the following arguments
+# diffusion_path,
+# num_classes,
+# ckpt_path=None,
+# pool='attention',
+# label_key=None,
+# diffusion_ckpt_path=None,
+# scheduler_config=None,
+# weight_decay=1.e-2,
+# log_steps=10,
+# monitor='val/loss',
+
+
+model:
+  base_learning_rate: 0.00003
+  target: ldm.models.diffusion.classifier.NoisyLatentImageClassifier
+  params:
+    diffusion_path: configs/latent-diffusion/cin256-v2.yaml #models/ldm/cin256-v2/config.yaml
+    num_classes: 11
+    diffusion_classifier_steps_ratio: 10
+    ckpt_path:
+    pool: attention
+    label_key: class_label
+    backbone: efficientnet_b0
+    diffusion_ckpt_path: models/ldm/cin256-v2/model.ckpt
+    monitor: val/loss
+    log_steps: 10
+    image_aug: false
+    latent_aug: false
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 16
+    num_workers: 16
+    wrap: false
+    train:
+      target: ldm.data.imagenette.ImageNette
+      params:
+        id: "full"
+        data_root: "./data"
+        random_crop: true
+        stage: train
+        size: 256
+
+    validation:
+      target: ldm.data.imagenette.ImageNette
+      params:
+        id: "full"
+        data_root: "./data"
+        random_crop: False
+        stage: val
+        size: 256
+lightning:
+
+  logger:
+    params:
+      entity: entitiy # set your name
+      project: ldce
+
+  trainer:
+    accumulate_grad_batches: 1
+    devices: 0, #1
+    accelerator: "gpu"
+    
+    #limit_val_batches: 20

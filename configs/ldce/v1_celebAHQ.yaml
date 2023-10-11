@@ -1,0 +1,44 @@
+resume: False
+fixed_seed: False
+record_intermediate: False
+output_dir: 'results/celeb'
+
+diffusion_model:
+  cfg_path: "configs/stable-diffusion/v1-inference.yaml"
+  ckpt_path: "/path/to/miniSD.ckpt" # miniSD https://huggingface.co/justinpinkney/miniSD/tree/main
+
+classifier_model:
+  classifier_path: "/path/to/classifier.tar" # checkpoints_decision_densenet.tar.gz (celebamaskhq/checkpoint.tar) from https://github.com/valeoai/STEEX/releases
+  classifier_wrapper: True
+
+n_samples_per_class: #2
+strength: 0.502 #0.322 #0.382 #0.34 #0.3 #28 #0.25
+scale: 3 #2.45 #2.85
+ddim_steps: 500 #500 #375 
+ddim_eta: 0.
+log_rate: 1
+
+data:
+  _target_: data.datasets.CelebAHQDataset
+  data_dir: '/path/to/CelebAMask-HQ'
+  random_crop: False
+  random_flip: False
+  partition: 'test'
+  query_label: 31 # 31 -> smiling; 39 -> age
+  normalize: False
+  batch_size: 1
+  shard: 0
+  num_shards: 1
+
+sampler:
+  self_recurrence: 0
+  self_recurrence_every_n_steps: 0
+  enforce_same_norms: True
+  guidance: "free" #"projected"
+  cone_projection_type: "zero_binning"
+  classifier_lambda: 0.5 #1. #3.3
+  dist_lambda: 0.25
+  masked_guidance: False
+  backprop_diffusion: True   
+  lp_custom: 1
+  deg_cone_projection: 35.
