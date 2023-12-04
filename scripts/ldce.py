@@ -25,11 +25,14 @@ import torchvision
 from torchvision import transforms, datasets
 from torchvision.utils import save_image
 
-from src.clipseg.models.clipseg import CLIPDensePredT
+try:
+    from src.clipseg.models.clipseg import CLIPDensePredT
+except ImportError:
+    print("clip seg is not installed; but not needed to run LDCE")
 try:
     from segment_anything import build_sam, SamPredictor
-except:
-    print("segment_anything not installed")
+except ImportError:
+    print("segment_anything is not installed; but not needed to run LDCE")
 from sampling_helpers import disabled_train, get_model, _unmap_img, generate_samples
 from sampling_helpers import load_model_hf
 import json
