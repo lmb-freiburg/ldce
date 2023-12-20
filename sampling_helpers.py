@@ -13,16 +13,6 @@ import random
 from ldm.util import instantiate_from_config
 from huggingface_hub import hf_hub_download
 
-try:
-    from groundingdino.util import box_ops
-    from groundingdino.util.slconfig import SLConfig
-    from groundingdino.models import build_model
-    from groundingdino.util.utils import clean_state_dict
-    from groundingdino.util.inference import predict
-except:
-    print("Warning install grounding dino!")
-
-
 # sys.path.append(".")
 # sys.path.append('./taming-transformers')
 

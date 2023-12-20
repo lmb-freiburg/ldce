@@ -25,14 +25,6 @@ import torchvision
 from torchvision import transforms, datasets
 from torchvision.utils import save_image
 
-try:
-    from src.clipseg.models.clipseg import CLIPDensePredT
-except ImportError:
-    print("clip seg is not installed; but not needed to run LDCE")
-try:
-    from segment_anything import build_sam, SamPredictor
-except ImportError:
-    print("segment_anything is not installed; but not needed to run LDCE")
 from sampling_helpers import disabled_train, get_model, _unmap_img, generate_samples
 from sampling_helpers import load_model_hf
 import json
@@ -224,17 +216,6 @@ def main(cfg : DictConfig) -> None:
     # device = torch.device("cpu") # there seems to be a CUDA/autograd instability in gradient computation
     print(f"using device: {device}")
 
-    if "seg_model" in cfg and cfg.seg_model is not None:
-        print("### Loading segmentation model ###")
-        if "name" in cfg.seg_model and cfg.seg_model.name == "clipseg":
-            model_seg = CLIPDensePredT(version=cfg.seg_model.version, reduce_dim=64) #int(cfg.seg_model.version.split('/')[-1]
-            model_seg.eval()
-            model_seg.load_state_dict(torch.load(cfg.seg_model.path, map_location=torch.device('cpu')), strict=False)
-        elif "name" in cfg.seg_model and cfg.seg_model.name == "GD_SAM":
-            detect_model = load_model_hf(repo_id=cfg.seg_model.dino.repo_id, filename= cfg.seg_model.dino.filename, dir = cfg.seg_model.dino.dir, ckpt_config_filename = cfg.seg_model.dino.ckpt_config_filename, device=device)
-            sam_checkpoint = os.path.join(cfg.pretrained_models_dir, 'sam_vit_h_4b8939.pth')
-            model_seg = SamPredictor(build_sam(checkpoint=sam_checkpoint).to(device))
-
     model = get_model(cfg_path=cfg.diffusion_model.cfg_path, ckpt_path = cfg.diffusion_model.ckpt_path).to(device).eval()
     
     classifier_model = get_classifier(cfg, device)
@@ -246,12 +227,7 @@ def main(cfg : DictConfig) -> None:
     scale = cfg.scale #for unconditional guidance
     strength = cfg.strength #for unconditional guidance
 
-    if "seg_model" not in cfg or cfg.seg_model is None or "name" not in cfg.seg_model:
-        sampler = CCMDDIMSampler(model, classifier_model, seg_model= None, classifier_wrapper="classifier_wrapper" in cfg.classifier_model and cfg.classifier_model.classifier_wrapper, record_intermediate_results=cfg.record_intermediate_results, verbose=cfg.verbose, **cfg.sampler)
-    elif cfg.seg_model.name == "clipseg":
-        sampler = CCMDDIMSampler(model, classifier_model, seg_model= model_seg, classifier_wrapper="classifier_wrapper" in cfg.classifier_model and cfg.classifier_model.classifier_wrapper, record_intermediate_results=cfg.record_intermediate_results, verbose=cfg.verbose, **cfg.sampler)
-    else:
-        sampler = CCMDDIMSampler(model, classifier_model, seg_model= model_seg, detect_model = detect_model, classifier_wrapper="classifier_wrapper" in cfg.classifier_model and cfg.classifier_model.classifier_wrapper, record_intermediate_results=cfg.record_intermediate_results, verbose=cfg.verbose, **cfg.sampler)
+    sampler = CCMDDIMSampler(model, classifier_model, seg_model= None, classifier_wrapper="classifier_wrapper" in cfg.classifier_model and cfg.classifier_model.classifier_wrapper, record_intermediate_results=cfg.record_intermediate_results, verbose=cfg.verbose, **cfg.sampler)
 
     sampler.make_schedule(ddim_num_steps=ddim_steps, ddim_eta=ddim_eta, verbose=False)
 

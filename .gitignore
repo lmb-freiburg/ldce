@@ -1,3 +1,5 @@
 __pycache__
 outputs
 results
+latent_diffusion.egg*
+models/ldm
